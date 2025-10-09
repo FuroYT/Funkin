@@ -1104,16 +1104,6 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
   // Input
 
   /**
-   * Handler used to track how long the user has been holding the undo keybind.
-   */
-  var undoKeyHandler:TurboKeyHandler = TurboKeyHandler.build([FlxKey.CONTROL, FlxKey.Z]);
-
-  /**
-   * Variable used to track how long the user has been holding the redo keybind.
-   */
-  var redoKeyHandler:TurboKeyHandler = TurboKeyHandler.build([FlxKey.CONTROL, FlxKey.Y]);
-
-  /**
    * Variable used to track how long the user has been holding the up keybind.
    */
   var upKeyHandler:TurboKeyHandler = TurboKeyHandler.build(FlxKey.UP);
@@ -2251,6 +2241,8 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
    * LIFE CYCLE FUNCTIONS
    */
   // ==============================
+  @:nullSafety(Off)
+  var shortcutList:Map<MenuItem, Void->Bool> = null;
 
   /**
    * The params which were passed in when the Chart Editor was initialized.
@@ -2334,7 +2326,8 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
 
     buildAdditionalUI();
     populateOpenRecentMenu();
-    this.applyPlatformShortcutText();
+    shortcutList = this.applyShortcutList();
+    trace(shortcutList);
 
     // Setup the onClick listeners for the UI after it's been created.
     setupUIListeners();
@@ -3332,8 +3325,6 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
   function setupTurboKeyHandlers():Void
   {
     // Keyboard shortcuts
-    add(undoKeyHandler);
-    add(redoKeyHandler);
     add(upKeyHandler);
     add(downKeyHandler);
     add(wKeyHandler);
@@ -3508,10 +3499,8 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     handleNotePreview();
     handleHealthIcons();
 
-    handleFileKeybinds();
-    handleViewKeybinds();
-    handleTestKeybinds();
-    handleHelpKeybinds();
+    if (!isHaxeUIDialogOpen) ChartEditorShortcutHandler.handleShortcuts(shortcutList);
+
     handleAudioKeybinds();
 
     #if FEATURE_DEBUG_FUNCTIONS
@@ -5715,50 +5704,6 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     }
   }
 
-  /**
-   * Handle keybinds for File menu items.
-   */
-  function handleFileKeybinds():Void
-  {
-    // CTRL + N = New Chart
-    if (pressingControl() && FlxG.keys.justPressed.N && !isHaxeUIDialogOpen)
-    {
-      this.openWelcomeDialog(true);
-    }
-
-    // CTRL + O = Open Chart
-    if (pressingControl() && FlxG.keys.justPressed.O && !isHaxeUIDialogOpen)
-    {
-      this.openBrowseFNFC(true);
-    }
-
-    if (pressingControl() && FlxG.keys.justPressed.S && !isHaxeUIDialogOpen)
-    {
-      if (currentWorkingFilePath == null || FlxG.keys.pressed.SHIFT)
-      {
-        // CTRL + SHIFT + S = Save As
-        this.exportAllSongData(false, null, function(path:String) {
-          // CTRL + SHIFT + S Successful
-          this.success('Saved Chart', 'Chart saved successfully to ${path}.');
-        }, function() {
-          // CTRL + SHIFT + S Cancelled
-        });
-      }
-      else
-      {
-        // CTRL + S = Save Chart
-        this.exportAllSongData(true, currentWorkingFilePath);
-        this.success('Saved Chart', 'Chart saved successfully to ${currentWorkingFilePath}.');
-      }
-    }
-
-    // CTRL + Q = Quit to Menu
-    if (pressingControl() && FlxG.keys.justPressed.Q)
-    {
-      quitChartEditor(true);
-    }
-  }
-
   @:nullSafety(Off)
   function quitChartEditor(exitPrompt:Bool = false):Void
   {
@@ -5787,48 +5732,10 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
    */
   function handleEditKeybinds():Void
   {
-    // CTRL + Z = Undo
-    if (undoKeyHandler.activated)
-    {
-      undoLastCommand();
-    }
-
-    // CTRL + Y = Redo
-    if (redoKeyHandler.activated)
-    {
-      redoLastCommand();
-    }
-
     // CTRL + C = Copy
     if (pressingControl() && FlxG.keys.justPressed.C)
     {
       performCommand(new CopyItemsCommand(currentNoteSelection, currentEventSelection));
-    }
-
-    // CTRL + X = Cut
-    if (pressingControl() && FlxG.keys.justPressed.X)
-    {
-      // Cut selected notes.
-      performCommand(new CutItemsCommand(currentNoteSelection, currentEventSelection));
-    }
-
-    // CTRL + V = Paste
-    if (pressingControl() && FlxG.keys.justPressed.V)
-    {
-      // CTRL + SHIFT + V = Paste Unsnapped.
-      var targetMs:Float = if (FlxG.keys.pressed.SHIFT)
-      {
-        scrollPositionInMs + playheadPositionInMs;
-      }
-      else
-      {
-        var targetMs:Float = scrollPositionInMs + playheadPositionInMs;
-        var targetStep:Float = Conductor.instance.getTimeInSteps(targetMs);
-        var targetSnappedStep:Float = Math.floor(targetStep / noteSnapRatio) * noteSnapRatio;
-        var targetSnappedMs:Float = Conductor.instance.getStepTimeInMs(targetSnappedStep);
-        targetSnappedMs;
-      }
-      performCommand(new PasteItemsCommand(targetMs));
     }
 
     // DELETE = Delete
@@ -5874,13 +5781,6 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
       }
     }
 
-    // CTRL + F = Flip Notes
-    if (pressingControl() && FlxG.keys.justPressed.F)
-    {
-      // Flip selected notes.
-      performCommand(new FlipNotesCommand(currentNoteSelection));
-    }
-
     // CTRL + A = Select All Notes
     if (pressingControl() && FlxG.keys.justPressed.A)
     {
@@ -5912,43 +5812,6 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
         }
       }
     }
-
-    // CTRL + I = Select Inverse
-    if (pressingControl() && FlxG.keys.justPressed.I)
-    {
-      // Select unselected items and deselect selected items.
-      performCommand(new InvertSelectedItemsCommand());
-    }
-
-    // CTRL + D = Select None
-    if (pressingControl() && FlxG.keys.justPressed.D)
-    {
-      // Deselect all items.
-      performCommand(new DeselectAllItemsCommand());
-    }
-  }
-
-  /**
-   * Handle keybinds for View menu items.
-   */
-  function handleViewKeybinds():Void
-  {
-    if (currentLiveInputStyle == None)
-    {
-      if (pressingControl() && FlxG.keys.justPressed.LEFT)
-      {
-        incrementDifficulty(-1);
-      }
-      if (pressingControl() && FlxG.keys.justPressed.RIGHT)
-      {
-        incrementDifficulty(1);
-      }
-      // Would bind Ctrl+A and Ctrl+D here, but they are already bound to Select All and Select None.
-    }
-    else
-    {
-      // trace('Ignoring keybinds for View menu items because we are in live input mode (${currentLiveInputStyle}).');
-    }
   }
 
   /**
@@ -5963,31 +5826,6 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     #else
     return FlxG.keys.pressed.CONTROL;
     #end
-  }
-
-  /**
-   * Handle keybinds for the Test menu items.
-   */
-  function handleTestKeybinds():Void
-  {
-    if (!isHaxeUIDialogOpen && !isHaxeUIFocused && FlxG.keys.justPressed.ENTER)
-    {
-      var minimal = FlxG.keys.pressed.SHIFT;
-      this.hideAllToolboxes();
-      testSongInPlayState(minimal);
-    }
-  }
-
-  /**
-   * Handle keybinds for Help menu items.
-   */
-  function handleHelpKeybinds():Void
-  {
-    // F1 = Open Help
-    if (FlxG.keys.justPressed.F1 && !isHaxeUIDialogOpen)
-    {
-      this.openUserGuideDialog();
-    }
   }
 
   /**
