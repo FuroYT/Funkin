@@ -101,6 +101,7 @@ import haxe.ui.components.Button;
 import haxe.ui.components.DropDown;
 import haxe.ui.components.Label;
 import haxe.ui.components.Slider;
+import haxe.ui.containers.Box;
 import haxe.ui.containers.dialogs.CollapsibleDialog;
 import haxe.ui.containers.menus.Menu;
 import haxe.ui.containers.menus.MenuBar;
@@ -732,6 +733,12 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
    * The camera component we're using for this state.
    */
   var uiCamera:FlxCamera;
+
+  /**
+   * The camera component that holds the grid.
+   * The camera used for mobile zooming
+   */
+  var gridCamera:FunkinCamera;
 
   // Audio
 
@@ -2040,6 +2047,11 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
   var menubarItemPlaybackSpeed:Slider;
 
   /**
+   * The playbar object holding the play, pause button, etc...
+   */
+  var playbar:Box;
+
+  /**
    * The label by the playbar telling the song position.
    */
   var playbarSongPos:Label;
@@ -2370,6 +2382,9 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
 
     uiCamera = new FunkinCamera('chartEditorUI');
     FlxG.cameras.reset(uiCamera);
+    gridCamera = new FunkinCamera('chartEditorGrid');
+    FlxG.cameras.insert(gridCamera, 0);
+    uiCamera.bgColor = gridCamera.bgColor = FlxColor.TRANSPARENT;
 
     buildDefaultSongData();
 
@@ -2624,12 +2639,12 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
   {
     menuBG = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
     add(menuBG);
-
-    menuBG.setGraphicSize(Std.int(menuBG.width * 1.1));
+    menuBG.setGraphicSize(Std.int(menuBG.width * 1.1 * FullScreenScaleMode.wideScale.x));
     menuBG.updateHitbox();
     menuBG.screenCenter();
     menuBG.scrollFactor.set(0, 0);
     menuBG.zIndex = -100;
+    menuBG.cameras = [gridCamera];
   }
 
   var oppSpectogram:PolygonSpectogram;
@@ -2702,6 +2717,9 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     healthIconBF.zIndex = 30;
 
     add(audioWaveforms);
+
+    for (item in [gridTiledSprite, gridGhostNote, gridGhostHoldNote, gridGhostEvent, gridPlayhead, healthIconDad, healthIconBF])
+      item.cameras = [gridCamera];
   }
 
   function createSubtitles():Void
@@ -2879,13 +2897,13 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     playbarHeadLayout = new ChartEditorPlaybarHead();
 
     playbarHeadLayout.zIndex = 110;
-    playbarHeadLayout.width = FlxG.width - 8;
+    playbarHeadLayout.width = FlxG.width - 8 - (FullScreenScaleMode.gameNotchSize.x * 2);
     playbarHeadLayout.height = 10;
-    playbarHeadLayout.x = 4;
+    playbarHeadLayout.x = FullScreenScaleMode.gameNotchSize.x + 4;
     playbarHeadLayout.y = FlxG.height - 48 - 8;
 
     playbarHeadLayout.playbarHead.allowFocus = false;
-    playbarHeadLayout.playbarHead.width = FlxG.width;
+    playbarHeadLayout.playbarHead.width = FlxG.width - (FullScreenScaleMode.gameNotchSize.x * 2);
     playbarHeadLayout.playbarHead.height = 10;
     playbarHeadLayout.playbarHead.styleString = 'padding-left: 0px; padding-right: 0px; border-left: 0px; border-right: 0px;';
     playbarHeadLayout.playbarHead.min = 0;
@@ -2936,7 +2954,10 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     txtCopyNotif.zIndex = 120;
     add(txtCopyNotif);
 
-    if (Preferences.debugDisplay == DebugDisplayMode.Off) menubar.paddingLeft = null;
+    var menuBarPadding = FullScreenScaleMode.gameNotchSize.x;
+    if (Preferences.debugDisplay != DebugDisplayMode.Off) menuBarPadding += 256;
+    menubar.paddingLeft = menuBarPadding;
+    menubar.paddingRight = playbar.paddingLeft = playbar.paddingRight = FullScreenScaleMode.gameNotchSize.x;
 
     this.setupNotifications();
 
@@ -3582,6 +3603,42 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     #end
 
     handlePostUpdate();
+
+    #if mobile
+    handleMobileZoom();
+    #end
+  }
+
+  var initialDistance:Float = 0;
+  var initialZoom:Float = 1;
+  var neededZoom:Float = 1;
+  var springThreshold:Float = 1.03;
+
+  function handleMobileZoom()
+  {
+    if (FlxG.touches.list.length >= 2)
+    {
+      var touch1 = FlxG.touches.list[FlxG.touches.list.length - 2];
+      var touch2 = FlxG.touches.list[FlxG.touches.list.length - 1];
+
+      var dx = touch1.viewX - touch2.viewX;
+      var dy = touch1.viewY - touch2.viewY;
+      var currentDistance = FlxMath.vectorLength(dx, dy);
+
+      // When pinch starts
+      if (touch1.justPressed || touch2.justPressed)
+      {
+        initialDistance = currentDistance;
+        initialZoom = neededZoom;
+      }
+      else
+      {
+        var zoomChange = currentDistance / initialDistance;
+        neededZoom = FlxMath.bound(initialZoom * zoomChange, 1 / springThreshold, 2 * springThreshold);
+      }
+    }
+    gridCamera.zoom = FlxMath.lerp(neededZoom, gridCamera.zoom, 0.8);
+    neededZoom = FlxMath.bound(neededZoom, 1, 2);
   }
 
   /**
@@ -5515,7 +5572,7 @@ class ChartEditorState extends UIState // UIState derives from MusicBeatState
     playbarHeadLayout.playbarHead.max = songLengthInPixels;
 
     // Make sure the playbar is never nudged out of the correct spot.
-    playbarHeadLayout.x = 4;
+    playbarHeadLayout.x = FullScreenScaleMode.gameNotchSize.x + 4;
     playbarHeadLayout.y = FlxG.height - 48 - 8;
 
     var songPos:Float = Conductor.instance.songPosition + Conductor.instance.instrumentalOffset;

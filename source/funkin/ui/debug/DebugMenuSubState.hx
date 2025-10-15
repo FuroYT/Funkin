@@ -11,6 +11,8 @@ import funkin.ui.debug.charting.ChartEditorState;
 import funkin.util.logging.CrashHandler;
 import flixel.addons.transition.FlxTransitionableState;
 import funkin.util.FileUtil;
+import funkin.ui.mainmenu.MainMenuState;
+import flixel.util.FlxColor;
 
 class DebugMenuSubState extends MusicBeatSubState
 {
@@ -76,6 +78,10 @@ class DebugMenuSubState extends MusicBeatSubState
     // Remove the "user" stylesheet to prevent components using incorrect style data when entering an editor.
     haxe.ui.Toolkit.styleSheet.clear("user");
     #end
+
+    #if mobile
+    addBackButton(FlxG.width - 230, FlxG.height - 200, FlxColor.WHITE, exitDebugMenu, 1.0);
+    #end
   }
 
   function onMenuChange(selected:TextMenuItem)
@@ -87,11 +93,7 @@ class DebugMenuSubState extends MusicBeatSubState
   {
     super.update(elapsed);
 
-    if (controls.BACK)
-    {
-      FunkinSound.playOnce(Paths.sound('cancelMenu'));
-      exitDebugMenu();
-    }
+    if (controls.BACK) exitDebugMenu();
   }
 
   function createItem(name:String, callback:Void->Void, fireInstantly = false):TextMenuItem
@@ -154,7 +156,15 @@ class DebugMenuSubState extends MusicBeatSubState
 
   function exitDebugMenu()
   {
+    FunkinSound.playOnce(Paths.sound('cancelMenu'));
     // TODO: Add a transition?
-    this.close();
+    if (FlxG.state == this)
+    {
+      FlxG.switchState(() -> new MainMenuState());
+    }
+    else
+    {
+      this.close();
+    }
   }
 }

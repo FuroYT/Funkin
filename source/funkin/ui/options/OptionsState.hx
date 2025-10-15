@@ -30,6 +30,9 @@ import funkin.mobile.ui.options.ControlsSchemeMenu;
 import funkin.mobile.util.InAppPurchasesUtil;
 #end
 import flixel.util.FlxColor;
+#if FEATURE_DEBUG_MENU
+import funkin.ui.debug.DebugMenuSubState;
+#end
 
 /**
  * The main options menu
@@ -232,6 +235,12 @@ class OptionsMenu extends Page<OptionsMenuPageName>
         });
       });
     }
+    #end
+
+    #if (FEATURE_DEBUG_MENU && mobile)
+    createItem("OPEN DEBUG MENU", () -> {
+      FlxG.switchState(() -> new DebugMenuSubState());
+    });
     #end
 
     // Create an object for the camera to track.
