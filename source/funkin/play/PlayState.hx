@@ -723,7 +723,7 @@ class PlayState extends MusicBeatSubState
 
   /**
    * The threshold for how much the conductor lerp can drift from the music.
-   * If the conductor song position deviate from the music by more than this amount, then a normal conductor update is triggered.
+   * If the music time deviate from the conductor song position by more than this amount, then the music time is set to the conductor song position.
    */
   static final CONDUCTOR_DRIFT_THRESHOLD:Float = 65;
 
@@ -1195,8 +1195,8 @@ class PlayState extends MusicBeatSubState
         {
           // Fallback to properly update the conductor incase the lerp messed up
           // Shouldn't be fallen back to unless you're lagging alot
-          trace(' WARNING '.bg_yellow().bold() + ' Normal Conductor Update!! are you lagging?');
-          Conductor.instance.update();
+          trace(' WARNING '.bg_yellow().bold() + ' Reseting song time to the conductor time!! are you lagging?');
+          FlxG.sound.music.time = Conductor.instance.songPosition;
         }
       }
     }
