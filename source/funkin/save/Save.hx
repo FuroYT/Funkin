@@ -116,6 +116,7 @@ class Save implements ConsoleClass
         globalOffset: 0,
         audioVisualOffset: 0,
         unlockedFramerate: false,
+        frameSyncedMusic: true,
         screenshot: {
           shouldHideMouse: true,
           fancyPreview: true,
@@ -1227,6 +1228,12 @@ typedef SaveDataOptions =
    * @default `false`
    */
   var unlockedFramerate:Bool;
+
+  /**
+   * If enabled, the game music will sync to the current frame.
+   * @default `true`
+   */
+  var frameSyncedMusic:Bool;
 
   /**
    * Screenshot options

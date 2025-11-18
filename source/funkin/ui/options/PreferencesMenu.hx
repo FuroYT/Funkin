@@ -206,6 +206,11 @@ class PreferencesMenu extends Page<OptionsState.OptionsMenuPageName>
     #end
     #end
 
+    createPrefItemCheckbox('Frame Synced Music',
+      'When disabled, the game music won\'t be synced to the current frame and will progress asynchronously instead.', function(value:Bool):Void {
+        Preferences.frameSyncedMusic = value;
+    }, Preferences.frameSyncedMusic);
+
     #if FEATURE_SCREENSHOTS
     createPrefItemCheckbox('Hide Mouse', 'When enabled, the mouse is hidden while taking a screenshot.', function(value:Bool):Void
     {

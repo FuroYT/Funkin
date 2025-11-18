@@ -485,6 +485,25 @@ class Preferences
   }
 
   /**
+   * If enabled, the game music will sync to the current frame.
+   * @default `true`
+   */
+  public static var frameSyncedMusic(get, set):Bool;
+
+  static function get_frameSyncedMusic():Bool
+  {
+    return Save?.instance?.options?.frameSyncedMusic ?? true;
+  }
+
+  static function set_frameSyncedMusic(value:Bool):Bool
+  {
+    var save:Save = Save.instance;
+    save.options.frameSyncedMusic = value;
+    Save.system.flush();
+    return value;
+  }
+
+  /**
    * Loads the user's preferences from the save data and apply them.
    */
   public static function init():Void
