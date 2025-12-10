@@ -725,7 +725,7 @@ class PlayState extends MusicBeatSubState
    * The threshold for how much the conductor lerp can drift from the music.
    * If the music time deviate from the conductor song position by more than this amount, then the music time is set to the conductor song position.
    */
-  static final CONDUCTOR_DRIFT_THRESHOLD:Float = 65;
+  static final CONDUCTOR_DRIFT_THRESHOLD:Float = 80;
 
   /**
    * The ratio for easing the song positon for smoother notes scrolling.
