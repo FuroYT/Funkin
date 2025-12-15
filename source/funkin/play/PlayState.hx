@@ -1199,6 +1199,7 @@ class PlayState extends MusicBeatSubState
           {
             trace(' WARNING '.bg_yellow().bold() + ' Reseting song time to the conductor time!! are you lagging?');
             FlxG.sound.music.time = Conductor.instance.songPosition;
+            resyncVocals();
           }
           else
           {
