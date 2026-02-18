@@ -1184,7 +1184,9 @@ class PlayState extends MusicBeatSubState
       // And it was frame dependant which we don't like!!
       if (FlxG.sound.music.playing)
       {
-        final audioDiff:Float = Math.round(Math.abs(FlxG.sound.music.time - (Conductor.instance.songPosition - Conductor.instance.combinedOffset)));
+        // The audio diff needs to be adapted alongside playback rate for fidelity
+        final audioDiff:Float = Math.round(Math.abs(FlxG.sound.music.time
+          - (Conductor.instance.songPosition - Conductor.instance.combinedOffset))) / playbackRate;
         if (audioDiff <= CONDUCTOR_DRIFT_THRESHOLD)
         {
           // Only do neat & smooth lerps as long as the lerp doesn't fuck up and go WAY behind the music time triggering false resyncs
@@ -1198,7 +1200,7 @@ class PlayState extends MusicBeatSubState
           if (Preferences.frameSyncedMusic)
           {
             trace(' WARNING '.bg_yellow().bold() + ' Reseting song time to the conductor time!! are you lagging?');
-            FlxG.sound.music.time = Conductor.instance.songPosition;
+            FlxG.sound.music.time = Conductor.instance.songPosition - Conductor.instance.combinedOffset;
             resyncVocals();
           }
           else
