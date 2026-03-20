@@ -16,6 +16,7 @@ import openfl.geom.Rectangle;
 class ScreenUtil
 {
   public static var supportsHighFramerate(get, never):Bool;
+
   public static function get_supportsHighFramerate():Bool
   {
     // More than 60hz displays are counted as high framerates displays
@@ -103,7 +104,7 @@ class ScreenUtil
     return notchRect;
   }
 
-  public static function getRefreshRate():Float
+  public static function getRefreshRate():Int
   {
     #if android
     var maxFramerate:Float = FlxG.stage.window.displayMode.refreshRate;
@@ -111,8 +112,8 @@ class ScreenUtil
     var maxFramerate:Float = -1;
     NativeScreenUtil.getMaximumFramerate(cpp.RawPointer.addressOf(maxFramerate));
     #end
-    maxFramerate = Math.max(60, maxFramerate); //Minimum framerate should always be more than 60
-    return maxFramerate;
+    maxFramerate = Math.max(60, maxFramerate); // Minimum framerate should always be 60 to not have issues
+    return Math.floor(maxFramerate);
   }
 
   public static function setFramerateToNative(enabled:Bool)
