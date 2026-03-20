@@ -48,12 +48,12 @@ class Project extends HXProject
   /**
    * The game's name on mobile. Used as the title for the game on the home screen.
    */
-  static final TITLE_MOBILE:String = "FNF";
+  static final TITLE_MOBILE:String = "FNF - Dev";
 
   /**
    * A package name used for identifying the app on various app stores.
    */
-  static final PACKAGE_NAME:String = "me.funkin.fnf";
+  static final PACKAGE_NAME:String = "me.funkinsdl.fnf";
 
   /**
    * The name of the generated executable file.
@@ -119,7 +119,7 @@ class Project extends HXProject
   /**
    * The team ID to use for the iOS app. Configured in XCode.
    */
-  static var IOS_TEAM_ID:String = "Z7G7AVNGSH";
+  static var IOS_TEAM_ID:String = "76JKPRB9Y7";
 
   /**
    * A list of asset file globs to exclude from ASTC compression when creating optimized mobile builds.
