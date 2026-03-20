@@ -21,3 +21,17 @@ void Apple_ScreenUtil_GetSafeAreaInsets(double* top, double* bottom, double* lef
  * @param height Pointer to a double where the screen height (in pixels) will be stored.
  */
 void Apple_ScreenUtil_GetScreenSize(double* width, double* height);
+
+/**
+ * Retrieves the maximum framerate of the main screen.
+ *
+ * @param framerate Pointer to a double where the screen framerate will be stored.
+ */
+void Apple_ScreenUtil_GetMaximumFramerate(double* framerate);
+
+/**
+ * Boosts the framerate of the game to be affected by Pro Motion (120fps) framerates
+ *
+ * @param enabled Whenever or not the game's framerate is maxed to the 120fps instead 60fps
+ */
+void Apple_ScreenUtil_BoostToMaximumFramerate(bool enable)

@@ -32,5 +32,21 @@ extern class ScreenUtil
    */
   @:native('Apple_ScreenUtil_GetScreenSize')
   static function getScreenSize(width:cpp.RawPointer<Float>, height:cpp.RawPointer<Float>):Void;
+
+  /**
+   * Retrieves the maximum framerate of the main screen.
+   *
+   * @param framerate Pointer to a double where the screen framerate will be stored.
+   */
+  @:native('Apple_ScreenUtil_GetMaximumFramerate')
+  static function getMaximumFramerate(framerate:cpp.RawPointer<Float>):Void;
+
+  /**
+   * Boosts the framerate of the game to be affected by Pro Motion (120fps) framerates
+   *
+   * @param enabled Whenever or not the game's framerate is maxed to the 120fps instead 60fps
+   */
+  @:native('Apple_ScreenUtil_BoostToMaximumFramerate')
+  static function boostToMaximumFramerate(enabled:Bool):Void;
 }
 #end

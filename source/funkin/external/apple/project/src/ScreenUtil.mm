@@ -5,6 +5,7 @@
 #import <UIKit/UIKit.h>
 #endif
 #import <Foundation/Foundation.h>
+#import <SDL3/SDL.h>
 
 void Apple_ScreenUtil_GetSafeAreaInsets(double* top, double* bottom, double* left, double* right)
 {
@@ -53,4 +54,27 @@ void Apple_ScreenUtil_GetScreenSize(double* width, double* height)
 
   (*width) = 0.0;
   (*height) = 0.0;
+}
+
+void Apple_ScreenUtil_GetMaximumFramerate(double* framerate)
+{
+  (*framerate) = (double)[UIScreen mainScreen].maximumFramesPerSecond;
+}
+
+void Apple_ScreenUtil_BoostToMaximumFramerate(bool enabled)
+{
+  SDL_Window *window = SDL_GetKeyboardFocus();
+  SDL_WindowData *data = (__bridge SDL_WindowData *)window->driverdata;
+  SDL_uikitviewcontroller *vc = data->viewcontroller;
+
+  CADisplayLink *displayLink = vc->displayLink;
+  if (!displayLink) return;
+
+  if (@available(iOS 15.0, *)) {
+      displayLink.preferredFrameRateRange = enabled
+          ? CAFrameRateRangeMake(80, 120, 120)
+          : CAFrameRateRangeMake(30, 60, 60);
+  } else {
+      displayLink.preferredFramesPerSecond = enabled ? 120 : 60;
+  }
 }

@@ -1,5 +1,6 @@
 package funkin.mobile.util;
 
+import flixel.FlxG;
 #if ios
 import funkin.external.apple.ScreenUtil as NativeScreenUtil;
 #elseif android
@@ -14,6 +15,13 @@ import openfl.geom.Rectangle;
  */
 class ScreenUtil
 {
+  public static var supportsHighFramerate(get, never):Bool;
+  public static function get_supportsHighFramerate():Bool
+  {
+    // More than 60hz displays are counted as high framerates displays
+    return getRefreshRate() > 60;
+  }
+
   /**
    * Get `Rectangle` Object that contains the dimensions of the screen's Notch.
    * Scales the dimensions to return coords in pixels, not points
@@ -93,5 +101,30 @@ class ScreenUtil
     #end
 
     return notchRect;
+  }
+
+  public static function getRefreshRate():Float
+  {
+    #if android
+    var maxFramerate:Float = FlxG.stage.window.displayMode.refreshRate;
+    #elseif ios
+    var maxFramerate:Float = -1;
+    NativeScreenUtil.getMaximumFramerate(cpp.RawPointer.addressOf(maxFramerate));
+    #end
+    maxFramerate = Math.max(60, maxFramerate); //Minimum framerate should always be more than 60
+    return maxFramerate;
+  }
+
+  public static function setFramerateToNative(enabled:Bool)
+  {
+    // This is necessary as Apple doesn't like to always use the max display framerate as it uses lots of battery / power
+    var newFpsCap = enabled ? getRefreshRate() : 60;
+
+    #if ios
+    NativeScreenUtil.boostToMaximumFramerate(enabled);
+    #end
+
+    FlxG.updateFramerate = newFpsCap;
+    FlxG.drawFramerate = newFpsCap;
   }
 }

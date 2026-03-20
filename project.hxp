@@ -1278,14 +1278,8 @@ class Project extends HXProject
 
     @:nullSafety(Off)
     {
-      if (config.getArrayString('ios.info-plist-children') != null)
-      {
-        config.set('ios.info-plist-children', config.getArrayString('ios.info-plist-children').concat([documentTypes]));
-      }
-      else
-      {
-        config.set('ios.info-plist-children', [documentTypes]);
-      }
+      var infoPlistChildren = config.getArrayString('ios.info-plist-children') ?? [];
+      config.set('ios.info-plist-children', infoPlistChildren.concat([documentTypes]));
     }
   }
 
