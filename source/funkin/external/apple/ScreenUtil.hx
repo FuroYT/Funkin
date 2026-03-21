@@ -42,7 +42,7 @@ extern class ScreenUtil
   static function getMaximumFramerate(framerate:cpp.RawPointer<Float>):Void;
 
   /**
-   * Boosts the framerate of the game to be affected by Pro Motion (120fps) framerates
+   * Boosts the framerate of the game to enable Pro Motion (120fps) framerates
    *
    * @param enabled Whenever or not the game's framerate is maxed to the 120fps instead 60fps
    */
