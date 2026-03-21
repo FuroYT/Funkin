@@ -34,4 +34,4 @@ void Apple_ScreenUtil_GetMaximumFramerate(double* framerate);
  *
  * @param enabled Whenever or not the game's framerate is maxed to the 120fps instead 60fps
  */
-void Apple_ScreenUtil_BoostToMaximumFramerate(bool enable)
+void Apple_ScreenUtil_BoostToMaximumFramerate(bool enable);
