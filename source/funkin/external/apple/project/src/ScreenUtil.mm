@@ -6,6 +6,7 @@
 #endif
 #import <Foundation/Foundation.h>
 #import <SDL3/SDL.h>
+#import <SDL3/SDL_video.h>
 
 void Apple_ScreenUtil_GetSafeAreaInsets(double* top, double* bottom, double* left, double* right)
 {
@@ -63,18 +64,22 @@ void Apple_ScreenUtil_GetMaximumFramerate(double* framerate)
 
 void Apple_ScreenUtil_BoostToMaximumFramerate(bool enabled)
 {
-  SDL_Window *window = SDL_GetKeyboardFocus();
-  SDL_WindowData *data = (__bridge SDL_WindowData *)window->driverdata;
-  SDL_uikitviewcontroller *vc = data->viewcontroller;
+  //waiting on jigsaw for cool func to get the display link or smth
+  auto* *window = SDL_GetKeyboardFocus(); //SDL_Window
+  if (!window) return;
+
+  auto* *data = window->driverdata; //SDL_WindowData
+  if (!data) return;
+
+  auto* *vc = data->viewcontroller; //SDL_uikitviewcontroller
+  if (!vc) return;
 
   CADisplayLink *displayLink = vc->displayLink;
   if (!displayLink) return;
 
   if (@available(iOS 15.0, *)) {
-      displayLink.preferredFrameRateRange = enabled
-          ? CAFrameRateRangeMake(80, 120, 120)
-          : CAFrameRateRangeMake(30, 60, 60);
+    displayLink.preferredFrameRateRange = enabled ? CAFrameRateRangeMake(80, 120, 120) : CAFrameRateRangeMake(30, 60, 60);
   } else {
-      displayLink.preferredFramesPerSecond = enabled ? 120 : 60;
+    displayLink.preferredFramesPerSecond = enabled ? 120 : 60;
   }
 }

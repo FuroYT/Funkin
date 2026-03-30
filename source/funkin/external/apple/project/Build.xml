@@ -12,9 +12,9 @@
 
 	<files id="external-apple">
 		<compilerflag value="-I${this_dir}/include" />
-		<compilerflag value="-I${NATIVE_TOOLKIT_PATH}/sdl/include/" />
-		<compilerflag value="-I${NATIVE_TOOLKIT_PATH}/sdl/include/configs/default/" unless="windows || mac || linux || rpi" />
-		<compilerflag value="-I${NATIVE_TOOLKIT_PATH}/sdl/include/configs/mac/" if="mac" />
+		<compilerflag value="-I${haxelib:lime}/project/lib/sdl/include/" />
+		<compilerflag value="-I${haxelib:lime}/project/lib/sdl/include/configs/default/" unless="mac" />
+		<compilerflag value="-I${haxelib:lime}/project/lib/sdl/include/configs/mac/" if="mac" />
 
 		<file name="${this_dir}/src/AudioSession.mm" />
 		<file name="${this_dir}/src/MemoryUtil.mm" />
